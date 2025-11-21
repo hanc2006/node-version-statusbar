@@ -5,7 +5,8 @@
   "version": "1.4.1",
   "publisher": "ShababulAlam",
   "engines": {
-    "vscode": "^1.74.0"
+    "vscode": "^1.74.0",
+    "node": ">=20.0.0"
   },
   "repository": {
     "type": "git",
@@ -209,20 +210,21 @@
     "compile-tests": "tsc -p . --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "check-types": "tsc --noEmit",
-    "lint": "eslint src",
+    "lint": "eslint src --fix",
     "test": "vscode-test",
     "download-api": "dts dev",
     "postdownload-api": "dts main",
     "postinstall": "npm run download-api"
   },
   "devDependencies": {
-    "@types/node": "24.9.1",
+    "@types/node": "24.10.1",
+    "@types/semver": "^7.7.1",
     "@typescript-eslint/eslint-plugin": "^8.28.0",
     "@typescript-eslint/parser": "^8.28.0",
     "@vscode/dts": "^0.4.1",
-    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
-    "esbuild": "^0.25.11",
+    "esbuild": "^0.27.0",
     "eslint": "^9.23.0",
     "typescript": "^5.8.2"
   },
@@ -230,7 +232,7 @@
     "@aws-sdk/client-sso": "^3.936.0",
     "@aws-sdk/client-sso-oidc": "^3.936.0",
     "@aws-sdk/credential-providers": "^3.936.0",
-    "@wcjiang/whereis": "^2.0.0",
-    "confbox": "^0.2.2"
+    "confbox": "^0.2.2",
+    "semver": "^7.7.3"
   }
 }

@@ -1,10 +1,10 @@
-import * as vscode from "vscode"
-import * as path from "path"
-import { runCommand } from "../utils/ProcessUtils"
+import * as vscode from "vscode";
+import * as path from "path";
+import { runCommand } from "../utils/ProcessUtils";
 import {
     KubeEnvironment,
     getKubeSecretConfig,
-} from "../utils/ConfigUtils"
+} from "../utils/ConfigUtils";
 
 export const KUBE_NAMESPACES = {
     "yol-backend": [
@@ -69,21 +69,21 @@ export const KUBE_NAMESPACES = {
         "yol-fiber-onboarding-service",
         "yol-mobile-onboarding-service",
     ],
-} as const
+} as const;
 
 export type Namespace = keyof typeof KUBE_NAMESPACES
 export type ServiceName = (typeof KUBE_NAMESPACES)[Namespace][number]
 
 export function resolveNamespaceForSecret(
     service: string,
-        namespaces: Record<string, readonly string[]> = KUBE_NAMESPACES,
+    namespaces: Record<string, readonly string[]> = KUBE_NAMESPACES,
 ): string {
     for (const [ns, services] of Object.entries(namespaces)) {
         if (services.includes(service)) {
-            return ns
+            return ns;
         }
     }
-    throw new Error(`Unknown secret base name: ${service}`)
+    throw new Error(`Unknown secret base name: ${service}`);
 }
 
 /**
@@ -101,9 +101,9 @@ export async function writeEnvLocalFromK8sSecret(
     serviceName: ServiceName,
     environment: KubeEnvironment,
 ): Promise<string> {
-        const secretName = `${serviceName}-secrets`;
-        const { envDirectory } = getKubeSecretConfig();
-        const namespace = resolveNamespaceForSecret(serviceName).concat(
+    const secretName = `${serviceName}-secrets`;
+    const { envDirectory } = getKubeSecretConfig();
+    const namespace = resolveNamespaceForSecret(serviceName).concat(
         `-${environment}`
     );
 
@@ -164,7 +164,7 @@ export async function writeEnvLocalFromK8sSecret(
                     const block = (value ?? "").replace(/\r$/gm, "");
                     // Append raw lines from the block
                     for (const l of block.split("\n")) {
-                        if (l.trim().length) lines.push(l);
+                        if (l.trim().length) { lines.push(l); }
                     }
                 }
             }
@@ -212,28 +212,28 @@ export async function writeEnvLocalFromK8sSecret(
     );
 
 
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
-    let resolvedDirectory = envDirectory
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    let resolvedDirectory = envDirectory;
     if (path.isAbsolute(envDirectory)) {
-        resolvedDirectory = envDirectory
+        resolvedDirectory = envDirectory;
     } else {
         if (!workspaceFolder) {
-            throw new Error("Unable to resolve workspace path for kube secrets output")
+            throw new Error("Unable to resolve workspace path for kube secrets output");
         }
-        resolvedDirectory = path.join(workspaceFolder.uri.fsPath, envDirectory)
+        resolvedDirectory = path.join(workspaceFolder.uri.fsPath, envDirectory);
     }
 
-    const envLabel = environment === "test" ? "local" : environment
-    const sanitizedService = serviceName.replace(/[^a-zA-Z0-9.-]/g, "-")
-    const fileName = `.env.${envLabel}.${sanitizedService}`
-    const directoryUri = vscode.Uri.file(resolvedDirectory)
-    const fileUri = vscode.Uri.file(path.join(resolvedDirectory, fileName))
+    const envLabel = environment === "test" ? "local" : environment;
+    const sanitizedService = serviceName.replace(/[^a-zA-Z0-9.-]/g, "-");
+    const fileName = `.env.${envLabel}.${sanitizedService}`;
+    const directoryUri = vscode.Uri.file(resolvedDirectory);
+    const fileUri = vscode.Uri.file(path.join(resolvedDirectory, fileName));
 
-    await vscode.workspace.fs.createDirectory(directoryUri)
+    await vscode.workspace.fs.createDirectory(directoryUri);
     await vscode.workspace.fs.writeFile(
         fileUri,
         Buffer.from(rewritten.join("\n"), "utf8"),
-    )
+    );
 
-    return fileUri.fsPath
+    return fileUri.fsPath;
 }

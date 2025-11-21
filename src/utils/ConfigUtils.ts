@@ -1,8 +1,8 @@
-import * as vscode from "vscode"
+import * as vscode from "vscode";
 
-const NODE_SECTION = "nodeVersion"
-const KUBE_SECTION = "kubeSecrets"
-const AWS_SECTION = "awsProfile"
+const NODE_SECTION = "nodeVersion";
+const KUBE_SECTION = "kubeSecrets";
+const AWS_SECTION = "awsProfile";
 
 export type PreferredVersionManager = "auto" | "nvm" | "n"
 
@@ -11,7 +11,7 @@ export const KUBE_ENVIRONMENTS = [
 	"integration",
 	"preprod",
 	"prod",
-] as const
+] as const;
 
 export type KubeEnvironment = typeof KUBE_ENVIRONMENTS[number]
 
@@ -35,12 +35,12 @@ export interface AwsProfileExtensionConfig {
 	showSwitchButton: boolean
 }
 
-export const DEFAULT_ENV_DIRECTORY = "src/Common/Environment"
+export const DEFAULT_ENV_DIRECTORY = "src/Common/Environment";
 
 export const getNodeVersionConfig = (
 	scope?: vscode.ConfigurationScope,
 ): NodeVersionExtensionConfig => {
-	const config = vscode.workspace.getConfiguration(NODE_SECTION, scope)
+	const config = vscode.workspace.getConfiguration(NODE_SECTION, scope);
 
 	return {
 		showInStatusBar: config.get<boolean>("showInStatusBar", true),
@@ -54,8 +54,8 @@ export const getNodeVersionConfig = (
 			"auto",
 		),
 		showSwitchButton: config.get<boolean>("showSwitchButton", true),
-	}
-}
+	};
+};
 
 export const updateNodeVersionConfig = async <
 	K extends keyof NodeVersionExtensionConfig,
@@ -67,22 +67,22 @@ export const updateNodeVersionConfig = async <
 ): Promise<void> => {
 	await vscode.workspace
 		.getConfiguration(NODE_SECTION, scope)
-		.update(key, value, target)
-}
+		.update(key, value, target);
+};
 
 export const getKubeSecretConfig = (
 	scope?: vscode.ConfigurationScope,
 ): KubeSecretExtensionConfig => {
-	const config = vscode.workspace.getConfiguration(KUBE_SECTION, scope)
+	const config = vscode.workspace.getConfiguration(KUBE_SECTION, scope);
 	return {
 		envDirectory: config.get<string>("envDirectory", DEFAULT_ENV_DIRECTORY),
-	}
-}
+	};
+};
 
 export const getAwsProfileConfig = (
 	scope?: vscode.ConfigurationScope,
 ): AwsProfileExtensionConfig => {
-	const config = vscode.workspace.getConfiguration(AWS_SECTION, scope)
+	const config = vscode.workspace.getConfiguration(AWS_SECTION, scope);
 
 	return {
 		showInStatusBar: config.get<boolean>("showInStatusBar", true),
@@ -93,8 +93,8 @@ export const getAwsProfileConfig = (
 		defaultProfile: config.get<string>("defaultProfile", "default"),
 		refreshInterval: config.get<number>("refreshInterval", 0),
 		showSwitchButton: config.get<boolean>("showSwitchButton", true),
-	}
-}
+	};
+};
 
 export const updateAwsProfileConfig = async <
 	K extends keyof AwsProfileExtensionConfig,
@@ -106,8 +106,8 @@ export const updateAwsProfileConfig = async <
 ): Promise<void> => {
 	await vscode.workspace
 		.getConfiguration(AWS_SECTION, scope)
-		.update(key, value, target)
-}
+		.update(key, value, target);
+};
 
 export const updateKubeSecretConfig = async <
 	K extends keyof KubeSecretExtensionConfig,
@@ -119,5 +119,5 @@ export const updateKubeSecretConfig = async <
 ): Promise<void> => {
 	await vscode.workspace
 		.getConfiguration(KUBE_SECTION, scope)
-		.update(key, value, target)
-}
+		.update(key, value, target);
+};
