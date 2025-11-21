@@ -31,6 +31,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- 🌐 **Remote Install Catalog**: Install workflow now fetches remote versions via each manager's `listRemote` command and surfaces them in a QuickPick for fast selection.
+
+### Changed
+- 🔧 **Manager Focus**: Extension now targets `nvm` (Windows/macOS/Linux) and `n` (macOS/Linux) for a more reliable experience across supported platforms.
+
 ## [1.4.0] - 2025-05-30
 
 ### Added

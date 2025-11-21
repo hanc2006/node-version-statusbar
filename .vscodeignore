@@ -5,10 +5,7 @@ src/**
 .yarnrc
 vsc-extension-quickstart.md
 **/tsconfig.json
-**/.eslintrc.json
+**/eslint.config.mjs
 **/*.map
 **/*.ts
-**/node_modules/**
-# Keep images folder - these are needed for README and marketplace
-# images/**  # DON'T exclude this
-*.vsix
+**/.vscode-test.*

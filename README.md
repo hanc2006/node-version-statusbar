@@ -1,8 +1,8 @@
-# Node Version Switch Status Bar
+# Node & Kube Dev Companion
 
-A powerful VS Code extension that displays your current Node.js version in the status bar and allows easy switching between installed versions using popular version managers.
+A powerful VS Code extension that displays your current Node.js version in the status bar, lets you switch/install versions via popular managers, and now streamlines fetching Kubernetes secrets into ready-to-use env files.
 
-![Node Version Switch Status Bar](images/icon.png)
+![Node & Kube Dev Companion](images/icon.png)
 
 ## Screenshots
 
@@ -19,8 +19,10 @@ A powerful VS Code extension that displays your current Node.js version in the s
 - **🚀 Version Switching**: Click status bar to instantly switch between installed Node.js versions
 - **🔄 Auto VS Code Reload**: Automatically reloads VS Code after successful version switching
 - **🧹 Automatic Terminal Cleanup**: Terminals close automatically after operations complete
-- **🛠️ Multi-Manager Support**: Works with nvm, fnm, and volta version managers
+- **🛠️ Version Manager Support**: Works with nvm on all platforms and n on macOS/Linux
+- **🌐 Remote Catalog**: Install new versions from a QuickPick fed by remote release lists
 - **📦 Install New Versions**: Install new Node.js versions directly from VS Code
+- **☁️ Kubernetes Secret Sync**: Fetch secrets/config maps into .env files from configured namespaces
 - **📋 One-Click Copy**: Copy version to clipboard via command palette
 - **🔄 Auto-Refresh**: Optional automatic refresh at custom intervals
 - **⚙️ Highly Customizable**: Personalize display format and behavior
@@ -32,7 +34,7 @@ A powerful VS Code extension that displays your current Node.js version in the s
 ### From VS Code Marketplace
 1. Open VS Code
 2. Go to Extensions (`Ctrl+Shift+X`)
-3. Search for "Node Version Switch Status Bar"
+3. Search for "Node & Kube Dev Companion"
 4. Click "Install"
 
 ### Manual Installation
@@ -54,9 +56,8 @@ The extension automatically detects and works with:
 
 | Manager | Support | Installation | Switching |
 |---------|---------|--------------|-----------|
-| **nvm** | ✅ Full | `nvm install <version>` | `nvm use <version>` |
-| **fnm** | ✅ Full | `fnm install <version>` | `fnm use <version>` |
-| **volta** | ✅ Full | `volta install node@<version>` | `volta install node@<version>` |
+| **nvm** | ✅ Windows/macOS/Linux | `nvm install <version>` | `nvm use <version>` |
+| **n** | ✅ macOS/Linux | `n install <version>` | `n <version>` |
 
 ### Quick Actions
 
@@ -67,6 +68,7 @@ The extension automatically detects and works with:
 | **Command Palette** → "Install Node Version" | Install new Node.js version |
 | **Command Palette** → "Copy Node Version" | Copy current version to clipboard |
 | **Command Palette** → "Refresh Node Version" | Manually refresh displayed version |
+| **Explorer Context Menu** → "Generate Kube Env File" | Build `.env` files for configured services |
 
 ## Configuration
 
@@ -78,7 +80,8 @@ Customize the extension through VS Code settings (`Ctrl+,`):
   "nodeVersion.statusBarText": "$(symbol-method) Node {version}",
   "nodeVersion.refreshInterval": 0,
   "nodeVersion.preferredManager": "auto",
-  "nodeVersion.showSwitchButton": true
+   "nodeVersion.showSwitchButton": true,
+   "kubeSecrets.envDirectory": "src/Common/Environment"
 }
 ```
 
@@ -89,8 +92,9 @@ Customize the extension through VS Code settings (`Ctrl+,`):
 | `nodeVersion.showInStatusBar` | boolean | `true` | Show/hide the Node.js version in status bar |
 | `nodeVersion.statusBarText` | string | `"$(symbol-method) Node {version}"` | Custom display format. Use `{version}` as placeholder |
 | `nodeVersion.refreshInterval` | number | `0` | Auto-refresh interval in seconds (0 = disabled) |
-| `nodeVersion.preferredManager` | string | `"auto"` | Preferred version manager: `auto`, `nvm`, `fnm`, `volta` |
+| `nodeVersion.preferredManager` | string | `"auto"` | Preferred version manager: `auto`, `nvm`, `n` *(n is macOS/Linux only)* |
 | `nodeVersion.showSwitchButton` | boolean | `true` | Enable clicking status bar to switch versions |
+| `kubeSecrets.envDirectory` | string | `"src/Common/Environment"` | Directory where generated `.env` files are written |
 
 ### Custom Display Formats
 
@@ -122,9 +126,25 @@ Control which version manager to use when multiple are available:
 
 // Force specific manager
 "nodeVersion.preferredManager": "nvm"
-"nodeVersion.preferredManager": "fnm" 
-"nodeVersion.preferredManager": "volta"
+"nodeVersion.preferredManager": "n"  
+// n is Unix-only; ignored on Windows
 ```
+
+### Kubernetes Secret Builder
+
+The extension uses a built-in namespace map that covers the supported services. When you run the secret helper command, it:
+
+- Locates the namespace for the requested service using the mapping
+- Pulls the secret/config map via `kubectl`
+- Writes the generated `.env` file into `kubeSecrets.envDirectory`
+
+You can adjust the target directory per workspace via `kubeSecrets.envDirectory` so generated files land where you expect.
+
+**Explorer workflow**
+
+1. Open the Explorer view and right-click the `src/Common/Environment` folder.
+2. Hover over **Generate Kube Env File** and choose an environment (test, integration, preprod, prod).
+3. Select a service from the QuickPick list. The extension fetches secrets/config maps and drops the resulting `.env` file into the folder (named `.env.<environment>.<service>`). Open the generated file immediately from the info toast.
 
 ## Commands
 
@@ -134,6 +154,7 @@ The extension provides these commands (accessible via `Ctrl+Shift+P`):
 - **Node Version: Install Node Version** - Install new Node.js versions
 - **Node Version: Refresh Node Version** - Manually refresh the displayed version  
 - **Node Version: Copy Node Version** - Copy the current Node.js version to clipboard
+- **Kube Secrets: Generate Test/Integration/Preprod/Prod Env File** - Fetch Kubernetes secrets into `.env` files via Explorer submenu
 
 ## Version Management Workflow
 
@@ -159,8 +180,8 @@ The extension provides these commands (accessible via `Ctrl+Shift+P`):
 1. **Open Command Palette**: Press `Ctrl+Shift+P`
 2. **Run Install Command**: Type "Node Version: Install Node Version"
 3. **Choose Manager**: Select version manager if multiple are available
-4. **Enter Version**: Type version number (e.g., `18.17.0`, `lts`, `latest`)
-5. **Watch Terminal**: Installation progress shown in integrated terminal
+4. **Select Version**: Pick from the remote version QuickPick or choose manual entry for a custom tag
+5. **Watch Terminal**: Installation progress shown in the integrated terminal
 
 ### Version Formats Supported
 
@@ -215,11 +236,8 @@ where nvm.exe
    # Install nvm (recommended)
    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
    
-   # Install fnm (fast alternative)
-   curl -fsSL https://fnm.vercel.app/install | bash
-   
-   # Install volta (Rust-based)
-   curl https://get.volta.sh | bash
+   # Install n (macOS/Linux)
+   curl -L https://git.io/n-install | bash
    ```
 
 2. **Restart VS Code** after installation
@@ -233,7 +251,8 @@ where nvm.exe
 1. **Verify Installation**:
    ```bash
    node --version
-   nvm --version  # or fnm --version, volta --version
+   nvm --version
+   n --version  # macOS/Linux only
    ```
 
 2. **Install Node.js**:
@@ -242,12 +261,9 @@ where nvm.exe
    nvm install node
    nvm use node
    
-   # Using fnm  
-   fnm install --lts
-   fnm use lts-latest
-   
-   # Using volta
-   volta install node
+   # Using n (macOS/Linux)
+   n install lts
+   n use lts
    ```
 
 3. **Manual Refresh**: Use "Node Version: Refresh Node Version" command
@@ -421,7 +437,7 @@ When reporting bugs, please include:
 
 ### [1.1.0]
 - **Node.js Version Switching**: Click status bar to switch between versions
-- **Multi-Manager Support**: nvm, fnm, and volta support
+- **Version Manager Support**: nvm (Windows/macOS/Linux) and n (macOS/Linux)
 - **Install New Versions**: Direct installation from VS Code
 - **Enhanced UI**: Beautiful version picker interface
 

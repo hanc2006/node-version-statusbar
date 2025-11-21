@@ -1,7 +1,7 @@
 {
-  "name": "node-version-statusbar",
-  "displayName": "Node Version Switch Status Bar",
-  "description": "Shows the current Node.js version in the status bar and allows switching between versions",
+  "name": "node-kube-dev-companion",
+  "displayName": "Node & Kube Dev Companion",
+  "description": "Switch Node.js versions and manage Kubernetes secrets without leaving VS Code",
   "version": "1.4.1",
   "publisher": "ShababulAlam",
   "engines": {
@@ -20,8 +20,6 @@
     "version",
     "status bar",
     "nvm",
-    "fnm",
-    "volta",
     "version manager"
   ],
   "icon": "images/icon.png",
@@ -50,10 +48,46 @@
         "command": "nodeVersion.installVersion",
         "title": "Install Node Version",
         "category": "Node Version"
+      },
+      {
+        "command": "awsProfile.switch",
+        "title": "Switch AWS Profile",
+        "category": "AWS Profile"
+      },
+      {
+        "command": "awsProfile.login",
+        "title": "AWS SSO Login",
+        "category": "AWS Profile"
+      },
+      {
+        "command": "kubeSecrets.generateEnv.test",
+        "title": "Generate Test Env File",
+        "category": "Kube Secrets"
+      },
+      {
+        "command": "kubeSecrets.generateEnv.integration",
+        "title": "Generate Integration Env File",
+        "category": "Kube Secrets"
+      },
+      {
+        "command": "kubeSecrets.generateEnv.preprod",
+        "title": "Generate Preprod Env File",
+        "category": "Kube Secrets"
+      },
+      {
+        "command": "kubeSecrets.generateEnv.prod",
+        "title": "Generate Prod Env File",
+        "category": "Kube Secrets"
+      }
+    ],
+    "submenus": [
+      {
+        "id": "kubeSecrets.generateEnv",
+        "label": "Generate Kube Env File"
       }
     ],
     "configuration": {
-      "title": "Node Version Switch Status Bar",
+      "title": "Node & Kube Dev Companion",
       "properties": {
         "nodeVersion.showInStatusBar": {
           "type": "boolean",
@@ -75,8 +109,7 @@
           "enum": [
             "auto",
             "nvm",
-            "fnm",
-            "volta"
+            "n"
           ],
           "default": "auto",
           "description": "Preferred Node.js version manager (auto = detect automatically)"
@@ -85,6 +118,36 @@
           "type": "boolean",
           "default": true,
           "description": "Enable clicking status bar to switch versions"
+        },
+        "awsProfile.showInStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show AWS profile info in the status bar"
+        },
+        "awsProfile.statusBarText": {
+          "type": "string",
+          "default": "$(cloud) AWS {profile}",
+          "description": "Status bar text template. Use {profile} and {state} placeholders"
+        },
+        "awsProfile.defaultProfile": {
+          "type": "string",
+          "default": "default",
+          "description": "Preferred AWS profile to select when VS Code starts"
+        },
+        "awsProfile.refreshInterval": {
+          "type": "number",
+          "default": 0,
+          "description": "Auto-refresh interval for AWS credentials in seconds (0 = disabled)"
+        },
+        "awsProfile.showSwitchButton": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable clicking AWS status bar item to open the profile picker"
+        },
+        "kubeSecrets.envDirectory": {
+          "type": "string",
+          "default": "src/Common/Environment",
+          "description": "Directory where generated .env files will be written"
         }
       }
     },
@@ -101,25 +164,73 @@
         },
         {
           "command": "nodeVersion.installVersion"
+        },
+        {
+          "command": "awsProfile.switch"
+        },
+        {
+          "command": "awsProfile.login"
+        }
+      ],
+      "explorer/context": [
+        {
+          "submenu": "kubeSecrets.generateEnv",
+          "group": "navigation@50",
+          "when": "explorerResourceIsFolder && resourcePath =~ /src[\\/]+Common[\\/]+Environment$/"
+        }
+      ],
+      "kubeSecrets.generateEnv": [
+        {
+          "command": "kubeSecrets.generateEnv.test",
+          "group": "1"
+        },
+        {
+          "command": "kubeSecrets.generateEnv.integration",
+          "group": "2"
+        },
+        {
+          "command": "kubeSecrets.generateEnv.preprod",
+          "group": "3"
+        },
+        {
+          "command": "kubeSecrets.generateEnv.prod",
+          "group": "4"
         }
       ]
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.mjs",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.mjs --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && npm run lint && node esbuild.mjs --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test",
+    "download-api": "dts dev",
+    "postdownload-api": "dts main",
+    "postinstall": "npm run download-api"
   },
   "devDependencies": {
-    "@types/node": "16.x",
-    "@types/vscode": "^1.74.0",
-    "@typescript-eslint/eslint-plugin": "^5.62.0",
-    "@typescript-eslint/parser": "^5.62.0",
-    "@vscode/test-electron": "^2.2.0",
-    "eslint": "^8.57.1",
-    "typescript": "^4.9.4"
+    "@types/node": "24.9.1",
+    "@typescript-eslint/eslint-plugin": "^8.28.0",
+    "@typescript-eslint/parser": "^8.28.0",
+    "@vscode/dts": "^0.4.1",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2",
+    "esbuild": "^0.25.11",
+    "eslint": "^9.23.0",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "@aws-sdk/client-sso": "^3.936.0",
+    "@aws-sdk/client-sso-oidc": "^3.936.0",
+    "@aws-sdk/credential-providers": "^3.936.0",
+    "@wcjiang/whereis": "^2.0.0",
+    "confbox": "^0.2.2"
   }
 }
